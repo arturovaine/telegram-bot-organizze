@@ -3,6 +3,7 @@ import json
 import requests
 from flask import Flask, request
 from datetime import datetime
+import google.generativeai as genai
 
 app = Flask(__name__)
 
@@ -10,7 +11,12 @@ app = Flask(__name__)
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 ORGANIZZE_EMAIL = os.environ.get('ORGANIZZE_EMAIL')
 ORGANIZZE_API_KEY = os.environ.get('ORGANIZZE_API_KEY')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 ALLOWED_CHAT_IDS = os.environ.get('ALLOWED_CHAT_IDS', '').split(',')
+
+# Initialize Gemini
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel('gemini-2.0-flash')
 
 
 def send_telegram(chat_id, text):
@@ -102,6 +108,24 @@ def get_financial_context():
     }
 
 
+def ask_gemini(user_message, financial_data):
+    """Ask Gemini AI about finances"""
+    system_prompt = '''Você é um assistente financeiro pessoal. Responda em português de forma clara e concisa.
+Use os dados financeiros fornecidos para responder perguntas sobre contas, saldos, transações e gastos.
+Formate valores em Reais (R$). Seja direto e útil. Não use markdown, apenas texto simples com quebras de linha.'''
+
+    context = f"Dados financeiros atuais:\n{json.dumps(financial_data, indent=2, ensure_ascii=False)}"
+
+    prompt = f"{system_prompt}\n\n{context}\n\nPergunta do usuário: {user_message}"
+
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        print(f"Gemini error: {e}")
+        return "Desculpe, não consegui processar sua pergunta. Tente novamente."
+
+
 @app.route('/', methods=['GET'])
 def home():
     return 'Organizze Bot is running!'
@@ -125,13 +149,24 @@ def webhook():
 
     # Handle /start and /help
     if text in ['/start', '/help']:
-        help_msg = '''🤖 <b>Organizze Bot</b>
+        help_msg = '''🤖 <b>Organizze Bot com IA</b>
 
-Bot em desenvolvimento...'''
+Pergunte qualquer coisa sobre suas finanças!
+
+Exemplos:
+• Qual meu saldo total?
+• Quanto gastei esse mês?
+• Quais foram minhas últimas transações?
+• Resumo das minhas finanças
+• Quanto tenho na conta Itaú?'''
         send_telegram(chat_id, help_msg)
         return 'OK'
 
-    send_telegram(chat_id, 'Mensagem recebida!')
+    # Get financial data and ask Gemini
+    financial_data = get_financial_context()
+    response = ask_gemini(text, financial_data)
+    send_telegram(chat_id, response)
+
     return 'OK'
 
 
