@@ -281,16 +281,40 @@ def webhook():
     if text in ['/start', '/help']:
         help_msg = '''🤖 <b>Organizze Bot com IA</b>
 
-Pergunte qualquer coisa sobre suas finanças!
+Pergunte qualquer coisa sobre suas finanças ou use os comandos rápidos:
 
-Exemplos:
-• Qual meu saldo total?
-• Quanto gastei esse mês?
-• Quais foram minhas últimas transações?
-• Resumo das minhas finanças
-• Quanto tenho na conta Itaú?'''
+📊 <b>Gráficos</b>
+/gastos_categoria - Gráfico de pizza por categoria
+/gastos_diarios - Gráfico de barras diário
+/resumo_visual - Resumo receitas x despesas
+
+💰 <b>Consultas</b>
+/saldo - Saldo total das contas
+/extrato - Últimas transações
+/resumo - Resumo financeiro do mês
+
+💳 <b>Cartões</b>
+/cartoes - Info dos cartões de crédito
+
+❓ Ou pergunte naturalmente:
+"Quanto gastei com alimentação?"
+"Qual meu saldo no Nubank?"'''
         send_telegram(chat_id, help_msg)
         return 'OK'
+
+    # Handle quick commands
+    quick_commands = {
+        '/gastos_categoria': 'Mostre um gráfico de pizza dos meus gastos por categoria',
+        '/gastos_diarios': 'Mostre um gráfico de barras dos meus gastos diários',
+        '/resumo_visual': 'Mostre um gráfico de resumo com receitas, despesas e saldo',
+        '/saldo': 'Qual é o saldo total de todas as minhas contas?',
+        '/extrato': 'Mostre minhas últimas transações',
+        '/resumo': 'Faça um resumo das minhas finanças deste mês',
+        '/cartoes': 'Quais são meus cartões de crédito e seus limites?'
+    }
+
+    if text in quick_commands:
+        text = quick_commands[text]
 
     # Get financial data and ask Gemini
     financial_data = get_financial_context()
