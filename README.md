@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/hero.jpg" alt="Organizze Bot" width="150">
+  <img src="assets/hero.jpg" alt="Organizze Bot" width="500">
 </p>
 
 # Organizze Telegram Bot
