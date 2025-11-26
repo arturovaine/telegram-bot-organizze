@@ -77,9 +77,84 @@ ALLOWED_CHAT_IDS=your_chat_id
 
 </details>
 
+<details>
+<summary><strong>4. Easy Deploy (Recommended for Beginners)</strong></summary>
+
+The easiest way to deploy this bot is using **Railway** or **Render** - no technical knowledge required!
+
+### Option A: Deploy on Railway (Recommended)
+
+1. **Create a Railway account**
+   - Go to [railway.app](https://railway.app)
+   - Sign up with your GitHub account
+
+2. **Deploy from GitHub**
+   - Click "New Project" -> "Deploy from GitHub repo"
+   - Select this repository: `arturovaine/telegram-bot-organizze`
+   - Railway will automatically detect the Dockerfile
+
+3. **Add your environment variables**
+   - Go to your project -> "Variables" tab
+   - Click "New Variable" and add each one:
+     ```
+     TELEGRAM_TOKEN = your_bot_token_here
+     ORGANIZZE_EMAIL = your_email_here
+     ORGANIZZE_API_KEY = your_api_key_here
+     GEMINI_API_KEY = your_gemini_key_here
+     ALLOWED_CHAT_IDS = your_chat_id_here
+     ```
+
+4. **Get your bot URL**
+   - Go to "Settings" -> "Networking" -> "Generate Domain"
+   - Copy the URL (looks like: `https://your-app.up.railway.app`)
+
+5. **Connect Telegram to your bot**
+   - Open this link in your browser (replace the values):
+     ```
+     https://api.telegram.org/bot<YOUR_TELEGRAM_TOKEN>/setWebhook?url=<YOUR_RAILWAY_URL>
+     ```
+   - You should see: `{"ok":true,"result":true,"description":"Webhook was set"}`
+
+6. **Done!** Message your bot on Telegram to test it.
+
+### Option B: Deploy on Render
+
+1. **Create a Render account**
+   - Go to [render.com](https://render.com)
+   - Sign up with your GitHub account
+
+2. **Create a new Web Service**
+   - Click "New" -> "Web Service"
+   - Connect your GitHub and select this repository
+   - Choose "Docker" as the environment
+
+3. **Configure the service**
+   - Name: `organizze-bot`
+   - Region: Choose closest to you
+   - Plan: Free (or Starter for better performance)
+
+4. **Add environment variables**
+   - Scroll to "Environment Variables"
+   - Add the same 5 variables as listed above
+
+5. **Deploy and get URL**
+   - Click "Create Web Service"
+   - Wait for deployment (2-5 minutes)
+   - Copy your URL from the dashboard
+
+6. **Set Telegram webhook** (same as Railway step 5)
+
+### Troubleshooting
+
+- **Bot not responding?** Check if your Chat ID is correct in `ALLOWED_CHAT_IDS`
+- **Error 401?** Your Organizze API key might be wrong
+- **Webhook error?** Make sure the URL ends without a trailing slash
+
+</details>
+
 ---
 
-## Deployment
+## Deployment (Advanced)
 
 <details>
 <summary><strong>Google Cloud Run</strong></summary>
