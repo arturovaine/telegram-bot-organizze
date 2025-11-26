@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/hero.jpg" alt="Organizze Bot" width="150">
+</p>
+
 # Organizze Telegram Bot
 
 A Telegram bot that integrates with [Organizze](https://organizze.com.br) personal finance app, powered by Google Gemini AI. Ask questions about your finances in natural language and get instant responses with charts and insights.
