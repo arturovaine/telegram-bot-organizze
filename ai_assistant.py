@@ -70,9 +70,17 @@ Exemplos de quando usar gráficos:
 - "gráfico de categorias" → [CHART:PIE]
 - "gastos por dia" ou "gráfico diário" → [CHART:BAR]
 - "resumo visual" ou "gráfico de receitas e despesas" → [CHART:SUMMARY]
-- "progresso do orçamento" → [CHART:BUDGET]
-- "histórico de faturas" → [CHART:INVOICE]
+- "progresso do orçamento" ou "orçamento mensal" → [CHART:BUDGET]
+- "histórico de faturas" ou "faturas dos últimos meses" → [CHART:INVOICE]
 - "comparar com mês passado" → [CHART:COMPARISON]
+
+IMPORTANTE sobre orçamentos:
+- Verifique se há dados no campo 'budgets' antes de sugerir gráfico de orçamento
+- Se budgets estiver vazio ou com valores zerados, informe que o usuário precisa configurar orçamentos primeiro no Organizze
+
+IMPORTANTE sobre faturas:
+- Verifique se há dados no campo 'invoices' antes de sugerir gráfico de faturas
+- Se invoices estiver vazio, informe que não há faturas registradas nos últimos 6 meses
 
 Se o usuário não pedir gráfico especificamente, responda apenas com texto.
 
