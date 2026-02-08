@@ -56,6 +56,34 @@ def get_financial_context() -> dict:
         categories = organizze.get_categories()
         budgets = organizze.get_budgets(today.year, today.month)
 
+        # Fetch invoices for all credit cards (last 6 months)
+        all_invoices = []
+        for card in cards:
+            if not card.get('archived'):
+                # Get invoices for current and previous 5 months
+                for month_offset in range(6):
+                    invoice_date = today.replace(day=1)
+                    if today.month - month_offset <= 0:
+                        invoice_year = today.year - 1
+                        invoice_month = 12 + (today.month - month_offset)
+                    else:
+                        invoice_year = today.year
+                        invoice_month = today.month - month_offset
+
+                    try:
+                        card_invoices = organizze.get_invoices(
+                            card['id'],
+                            year=invoice_year
+                        )
+                        # Filter for specific month
+                        for inv in card_invoices:
+                            inv_date = inv.get('date', '')
+                            if inv_date.startswith(f"{invoice_year}-{invoice_month:02d}"):
+                                all_invoices.append(inv)
+                    except Exception as e:
+                        logger.warning(f"Failed to fetch invoices for card {card['id']}: {e}")
+                        continue
+
         # Build category map
         category_map = {cat['id']: cat['name'] for cat in categories}
 
@@ -121,6 +149,19 @@ def get_financial_context() -> dict:
                 'actual': budget.get('actual', 0)
             })
 
+        # Process invoices
+        invoices_list = []
+        for invoice in all_invoices:
+            invoices_list.append({
+                'id': invoice.get('id'),
+                'date': invoice.get('date'),
+                'starting_date': invoice.get('starting_date'),
+                'closing_date': invoice.get('closing_date'),
+                'amount_cents': invoice.get('amount_cents', 0),
+                'payment_amount_cents': invoice.get('payment_amount_cents', 0),
+                'balance_cents': invoice.get('balance_cents', 0)
+            })
+
         # Month names in Portuguese
         months_pt = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
                      'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
@@ -138,6 +179,7 @@ def get_financial_context() -> dict:
             'allTransactions': transactions_list,
             'creditCards': credit_cards_list,
             'budgets': budgets_list,
+            'invoices': invoices_list,
             'categories': list(category_map.values())
         }
 
@@ -162,23 +204,44 @@ def handle_chart_request(chat_id: int, chart_type: str, financial_data: dict, re
     """
     chart_data = None
     caption = ai.remove_command_tags(response_text).strip()[:1024]
+    error_message = "Desculpe, não consegui gerar o gráfico. Dados insuficientes."
 
-    if chart_type == 'PIE':
-        chart_data = generate_pie_chart(financial_data.get('recentTransactions', []))
-    elif chart_type == 'BAR':
-        chart_data = generate_bar_chart(financial_data.get('recentTransactions', []))
-    elif chart_type == 'SUMMARY':
-        chart_data = generate_summary_chart(financial_data)
-    elif chart_type == 'BUDGET':
-        budgets = financial_data.get('budgets', [])
-        category_map = {b['category_id']: b['category'] for b in budgets}
-        chart_data = generate_budget_progress_chart(budgets, category_map)
+    try:
+        if chart_type == 'PIE':
+            transactions = financial_data.get('recentTransactions', [])
+            if not transactions:
+                error_message = "Não há transações para exibir no gráfico de pizza."
+            chart_data = generate_pie_chart(transactions)
+        elif chart_type == 'BAR':
+            transactions = financial_data.get('recentTransactions', [])
+            if not transactions:
+                error_message = "Não há transações para exibir no gráfico de barras."
+            chart_data = generate_bar_chart(transactions)
+        elif chart_type == 'SUMMARY':
+            chart_data = generate_summary_chart(financial_data)
+        elif chart_type == 'BUDGET':
+            budgets = financial_data.get('budgets', [])
+            if not budgets:
+                error_message = "Você ainda não definiu orçamentos no Organizze. Configure suas metas primeiro."
+            else:
+                category_map = {b['category_id']: b['category'] for b in budgets}
+                chart_data = generate_budget_progress_chart(budgets, category_map)
+        elif chart_type == 'INVOICE':
+            invoices = financial_data.get('invoices', [])
+            if not invoices:
+                error_message = "Não há faturas de cartão de crédito para exibir nos últimos 6 meses."
+            chart_data = generate_invoice_history_chart(invoices)
 
-    if chart_data:
-        telegram.send_photo(chat_id, chart_data, caption)
-        return True
-    else:
-        telegram.send_message(chat_id, "Desculpe, não consegui gerar o gráfico. Dados insuficientes.")
+        if chart_data:
+            telegram.send_photo(chat_id, chart_data, caption)
+            return True
+        else:
+            logger.warning(f"Failed to generate {chart_type} chart: {error_message}")
+            telegram.send_message(chat_id, error_message)
+            return False
+    except Exception as e:
+        logger.error(f"Error generating {chart_type} chart: {e}", exc_info=True)
+        telegram.send_message(chat_id, f"❌ Erro ao gerar gráfico: {str(e)}")
         return False
 
 
