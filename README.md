@@ -6,29 +6,29 @@
 
 A powerful Telegram bot that integrates with [Organizze](https://organizze.com.br) personal finance app, powered by Google Gemini AI. Ask questions about your finances in natural language and get instant responses with charts and insights.
 
-**🎉 Version 2.0** - Complete API integration with modular architecture and 31+ endpoints.
+**Version 2.0** - Complete API integration with modular architecture and 31+ endpoints.
 
-## ✨ Features
+## Features
 
 ### Core Capabilities
 
-- 🤖 **Natural Language Queries**: Ask anything about your finances in Portuguese
-- 🧠 **AI-Powered Responses**: Uses Google Gemini 2.0 Flash for intelligent understanding
-- 📊 **Rich Visualizations**: 6 chart types (pie, bar, summary, budget, invoice, comparison)
-- ⚡ **Quick Commands**: Pre-built shortcuts for common queries
-- 🔐 **Secure**: Whitelist-based access control via Chat ID
-- 📈 **Budget Tracking**: Monitor spending vs budget goals
-- 💳 **Invoice Management**: Track credit card invoices and payments
-- 💰 **Complete Financial Context**: Accounts, transactions, categories, budgets, and more
+- **Natural Language Queries**: Ask anything about your finances in Portuguese
+- **AI-Powered Responses**: Uses Google Gemini 2.0 Flash for intelligent understanding
+- **Rich Visualizations**: 6 chart types (pie, bar, summary, budget, invoice, comparison)
+- **Quick Commands**: Pre-built shortcuts for common queries
+- **Secure**: Whitelist-based access control via Chat ID
+- **Budget Tracking**: Monitor spending vs budget goals
+- **Invoice Management**: Track credit card invoices and payments
+- **Complete Financial Context**: Accounts, transactions, categories, budgets, and more
 
 ### Technical Features
 
-- 🏗️ **Modular Architecture**: Clean separation of concerns across 6 modules
-- 🔌 **Complete API Integration**: All 31 Organizze API endpoints implemented
-- 🛡️ **Comprehensive Error Handling**: Custom exceptions for auth, validation, and API errors
-- ✅ **Type Safety**: Pydantic models with automatic validation
-- 📝 **Full Documentation**: API reference, architecture diagrams, deployment guides
-- 🧪 **Testing Suite**: Automated tests for all endpoints
+- **Modular Architecture**: Clean separation of concerns across 6 modules
+- **Complete API Integration**: All 31 Organizze API endpoints implemented
+- **Comprehensive Error Handling**: Custom exceptions for auth, validation, and API errors
+- **Type Safety**: Pydantic models with automatic validation
+- **Full Documentation**: API reference, architecture diagrams, deployment guides
+- **Testing Suite**: Automated tests for all endpoints
 
 ## Screenshot
 
@@ -38,24 +38,24 @@ A powerful Telegram bot that integrates with [Organizze](https://organizze.com.b
 
 ---
 
-## 📊 API Coverage
+## API Coverage
 
 | Category | Endpoints | Status |
 |----------|-----------|--------|
-| **Users** | 1 endpoint | ✅ Complete |
-| **Bank Accounts** | 5 endpoints (CRUD) | ✅ Complete |
-| **Categories** | 5 endpoints (CRUD) | ✅ Complete |
-| **Credit Cards** | 5 endpoints (CRUD) | ✅ Complete |
-| **Credit Card Invoices** | 3 endpoints | ✅ Complete |
-| **Transactions** | 6 endpoints (CRUD + recurring) | ✅ Complete |
-| **Transfers** | 5 endpoints (CRUD) | ✅ Complete |
-| **Budgets** | 1 endpoint | ✅ Complete |
+| **Users** | 1 endpoint | Complete |
+| **Bank Accounts** | 5 endpoints (CRUD) | Complete |
+| **Categories** | 5 endpoints (CRUD) | Complete |
+| **Credit Cards** | 5 endpoints (CRUD) | Complete |
+| **Credit Card Invoices** | 3 endpoints | Complete |
+| **Transactions** | 6 endpoints (CRUD + recurring) | Complete |
+| **Transfers** | 5 endpoints (CRUD) | Complete |
+| **Budgets** | 1 endpoint | Complete |
 
-**Total: 31/31 endpoints (100% coverage)** 🎯
+**Total: 31/31 endpoints (100% coverage)**
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 <details>
 <summary><strong>1. Prerequisites</strong></summary>
@@ -197,19 +197,20 @@ The easiest way to deploy this bot is using **Railway** or **Render** - no techn
 
 ---
 
-## 🌐 Deployment (Advanced)
+## CI/CD Pipeline
+
+This project includes **automated deployment** via GitHub Actions. Every push to `main` triggers automatic deployment to Google Cloud Run.
+
+### Setup CI/CD (One-time)
 
 <details>
-<summary><strong>Google Cloud Run (Recommended)</strong></summary>
+<summary><strong>Configure Automated Deployments</strong></summary>
 
-### Using Secret Manager (Recommended)
-
-1. **Create secrets:**
+1. **Create GCP secrets** (if not already done):
 ```bash
-# Set your project
 gcloud config set project YOUR_PROJECT_ID
 
-# Create secrets
+# Create secrets in Secret Manager
 echo -n "your_telegram_token" | gcloud secrets create TELEGRAM_TOKEN --data-file=-
 echo -n "your_email" | gcloud secrets create ORGANIZZE_EMAIL --data-file=-
 echo -n "your_api_key" | gcloud secrets create ORGANIZZE_API_KEY --data-file=-
@@ -217,7 +218,7 @@ echo -n "your_gemini_key" | gcloud secrets create GEMINI_API_KEY --data-file=-
 echo -n "your_chat_id" | gcloud secrets create ALLOWED_CHAT_IDS --data-file=-
 ```
 
-2. **Grant permissions:**
+2. **Grant Secret Manager access:**
 ```bash
 PROJECT_NUMBER=$(gcloud projects describe YOUR_PROJECT_ID --format='value(projectNumber)')
 
@@ -226,7 +227,69 @@ gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
   --role="roles/secretmanager.secretAccessor"
 ```
 
-3. **Deploy:**
+3. **Create service account key for GitHub Actions:**
+```bash
+# Create service account key
+gcloud iam service-accounts keys create ~/gcp-sa-key.json \
+  --iam-account=${PROJECT_NUMBER}-compute@developer.gserviceaccount.com
+
+# Display the key (copy this)
+cat ~/gcp-sa-key.json
+```
+
+4. **Add secret to GitHub repository:**
+   - Go to: `https://github.com/YOUR_USERNAME/telegram-bot-organizze/settings/secrets/actions`
+   - Click **New repository secret**
+   - Name: `GCP_SA_KEY`
+   - Value: Paste the entire JSON content from step 3
+   - Click **Add secret**
+
+5. **Done!** Now every `git push` to `main` automatically deploys to Cloud Run.
+
+### How It Works
+
+```yaml
+# .github/workflows/deploy.yml
+on:
+  push:
+    branches: [main]  # Triggers on push to main
+  workflow_dispatch:   # Manual trigger option
+
+jobs:
+  deploy:
+    - Authenticate with GCP using GCP_SA_KEY
+    - Build Docker container from source
+    - Deploy to Cloud Run with secrets
+    - Show deployment URL
+```
+
+### Manual Deployment Trigger
+
+You can also trigger deployment manually:
+1. Go to: `https://github.com/YOUR_USERNAME/telegram-bot-organizze/actions`
+2. Select **Deploy to Cloud Run** workflow
+3. Click **Run workflow** → **Run workflow**
+
+### View Deployment Status
+
+Check deployment progress:
+- GitHub: `https://github.com/YOUR_USERNAME/telegram-bot-organizze/actions`
+- GCP Console: Cloud Run → organizze-bot → Revisions
+
+</details>
+
+---
+
+## Manual Deployment (Advanced)
+
+<details>
+<summary><strong>Google Cloud Run</strong></summary>
+
+### One-time Manual Deploy
+
+1. **Create secrets** (same as CI/CD setup above)
+
+2. **Deploy manually:**
 ```bash
 gcloud run deploy organizze-bot \
   --source . \
@@ -236,7 +299,7 @@ gcloud run deploy organizze-bot \
   --set-secrets="TELEGRAM_TOKEN=TELEGRAM_TOKEN:latest,ORGANIZZE_EMAIL=ORGANIZZE_EMAIL:latest,ORGANIZZE_API_KEY=ORGANIZZE_API_KEY:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,ALLOWED_CHAT_IDS=ALLOWED_CHAT_IDS:latest"
 ```
 
-4. **Set Telegram webhook:**
+3. **Set Telegram webhook:**
 ```bash
 curl "https://api.telegram.org/bot<YOUR_TOKEN>/setWebhook?url=<YOUR_CLOUD_RUN_URL>&drop_pending_updates=true"
 ```
@@ -294,23 +357,23 @@ docker run -d \
 
 ---
 
-## 📱 Usage
+## Usage
 
 ### Available Commands
 
 | Command | Description | Status |
 |---------|-------------|--------|
-| `/start`, `/help` | Show help menu with all commands | ✅ Active |
-| `/gastos_categoria` | Pie chart of expenses by category | ✅ Active |
-| `/gastos_diarios` | Bar chart of daily expenses | ✅ Active |
-| `/resumo_visual` | Summary chart (income vs expenses vs balance) | ✅ Active |
-| `/saldo` | Total balance across all accounts | ✅ Active |
-| `/extrato` | Recent transactions | ✅ Active |
-| `/resumo` | Monthly financial summary | ✅ Active |
-| `/cartoes` | Credit cards information | ✅ Active |
-| `/orcamento` | Budget progress by category | 🔜 Coming Soon |
-| `/fatura` | Current credit card invoice | 🔜 Coming Soon |
-| `/faturas` | Invoice history chart | 🔜 Coming Soon |
+| `/start`, `/help` | Show help menu with all commands | Active |
+| `/gastos_categoria` | Pie chart of expenses by category | Active |
+| `/gastos_diarios` | Bar chart of daily expenses | Active |
+| `/resumo_visual` | Summary chart (income vs expenses vs balance) | Active |
+| `/saldo` | Total balance across all accounts | Active |
+| `/extrato` | Recent transactions | Active |
+| `/resumo` | Monthly financial summary | Active |
+| `/cartoes` | Credit cards information | Active |
+| `/orcamento` | Budget progress by category | Coming Soon |
+| `/fatura` | Current credit card invoice | Coming Soon |
+| `/faturas` | Invoice history chart | Coming Soon |
 
 ### Natural Language Examples
 
@@ -327,12 +390,12 @@ Ask anything in Portuguese:
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 telegram-bot-organizze/
 │
-├── 🚀 Core Application
+├── Core Application
 │   ├── main.py                      # Flask app & webhook handler
 │   ├── organizze_client.py          # Complete API client (31 endpoints)
 │   ├── ai_assistant.py              # Gemini AI integration
@@ -340,31 +403,33 @@ telegram-bot-organizze/
 │   ├── charts.py                    # Chart generation (6 types)
 │   └── models.py                    # Pydantic data models
 │
-├── 🧪 Testing & Validation
+├── Testing & Validation
 │   └── test_api.py                  # API testing suite
 │
-├── 📖 Documentation
+├── Documentation
 │   ├── README.md                    # This file
 │   ├── API_DOCUMENTATION.md         # Complete API reference (1000+ lines)
 │   ├── ARCHITECTURE.md              # System design & diagrams
 │   ├── IMPLEMENTATION_SUMMARY.md    # Implementation details
 │   └── DEPLOYMENT_CHECKLIST.md      # Deployment guide
 │
-├── ⚙️ Configuration
+├── Configuration
 │   ├── requirements.txt             # Python dependencies
 │   ├── Dockerfile                   # Container definition
-│   └── .gitignore                   # Git ignore rules
+│   ├── .gitignore                   # Git ignore rules
+│   └── .github/workflows/
+│       └── deploy.yml               # CI/CD pipeline (GitHub Actions)
 │
-└── 🖼️ Assets
+└── Assets
     ├── hero.png                     # README hero image
     └── bot-screenshot.png           # Bot interface screenshot
 ```
 
-**Total: 3,568 lines of code** across 11 files (6 modules + 4 docs + 1 test suite)
+**Total: 3,568 lines of code** across 12 files (6 modules + 4 docs + 1 test suite + 1 CI/CD workflow)
 
 ---
 
-## 🏛️ Architecture
+## Architecture
 
 ### High-Level Overview
 
@@ -412,7 +477,7 @@ For detailed architecture information, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 | Document | Description | Lines |
 |----------|-------------|-------|
@@ -423,7 +488,7 @@ For detailed architecture information, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
-## 🔐 Security Considerations
+## Security Considerations
 
 <details>
 <summary><strong>Security Layers</strong></summary>
@@ -437,18 +502,18 @@ For detailed architecture information, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ### Best Practices
 
-- ✅ Never commit secrets to version control
-- ✅ Use secret managers for production
-- ✅ Whitelist Chat IDs to restrict access
-- ✅ Enable HTTPS for webhook endpoints
-- ✅ Rotate API keys periodically
-- ✅ Monitor logs for unauthorized access
+- Never commit secrets to version control
+- Use secret managers for production
+- Whitelist Chat IDs to restrict access
+- Enable HTTPS for webhook endpoints
+- Rotate API keys periodically
+- Monitor logs for unauthorized access
 
 </details>
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Run the comprehensive test suite:
 
@@ -465,15 +530,15 @@ python test_api.py
 ```
 
 The test suite validates:
-- ✅ All 31 API endpoints
-- ✅ Error handling (401, 422, timeouts)
-- ✅ Data conversion (cents ↔ reais)
-- ✅ Response parsing
-- ✅ Chart generation
+- All 31 API endpoints
+- Error handling (401, 422, timeouts)
+- Data conversion (cents ↔ reais)
+- Response parsing
+- Chart generation
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 <details>
 <summary><strong>Bot not responding</strong></summary>
@@ -532,9 +597,9 @@ curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<YOUR_URL>"
 
 ---
 
-## 🚀 Roadmap
+## Roadmap
 
-### ✅ Completed (Version 2.0)
+### Completed (Version 2.0)
 
 - [x] Complete API integration (31 endpoints)
 - [x] Modular architecture
@@ -545,7 +610,7 @@ curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<YOUR_URL>"
 - [x] Full documentation suite
 - [x] Testing framework
 
-### 🔜 Phase 3 (Coming Soon)
+### Phase 3 (Coming Soon)
 
 - [ ] Budget tracking commands (`/orcamento`, `/metas`)
 - [ ] Invoice management commands (`/fatura`, `/faturas`)
@@ -555,7 +620,7 @@ curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<YOUR_URL>"
 - [ ] Spending alerts and notifications
 - [ ] Category management via chat
 
-### 🎯 Future Enhancements
+### Future Enhancements
 
 - [ ] Redis caching layer for performance
 - [ ] Predictive analytics with AI
@@ -566,7 +631,7 @@ curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<YOUR_URL>"
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Here's how:
 
@@ -601,7 +666,7 @@ python test_api.py
 
 ---
 
-## 📊 Project Stats
+## Project Stats
 
 | Metric | Value |
 |--------|-------|
@@ -611,18 +676,19 @@ python test_api.py
 | **Documentation** | 4 comprehensive guides |
 | **Chart Types** | 6 |
 | **Test Cases** | Complete suite |
+| **CI/CD** | GitHub Actions (automated deployment) |
 | **Python Version** | 3.11+ |
 | **Cloud Platforms** | GCP, AWS, Azure, Railway, Render |
 
 ---
 
-## 📄 License
+## License
 
 This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Organizze](https://organizze.com.br) for the personal finance API
 - [Google Gemini](https://deepmind.google/technologies/gemini/) for AI capabilities
@@ -632,12 +698,12 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-## 📞 Support
+## Support
 
-- 📖 [Complete API Documentation](API_DOCUMENTATION.md)
-- 🏗️ [Architecture Guide](ARCHITECTURE.md)
-- 🚀 [Deployment Guide](DEPLOYMENT_CHECKLIST.md)
-- 🐛 [Issues](https://github.com/yourusername/telegram-bot-organizze/issues)
+- [Complete API Documentation](API_DOCUMENTATION.md)
+- [Architecture Guide](ARCHITECTURE.md)
+- [Deployment Guide](DEPLOYMENT_CHECKLIST.md)
+- [Issues](https://github.com/yourusername/telegram-bot-organizze/issues)
 
 ---
 
