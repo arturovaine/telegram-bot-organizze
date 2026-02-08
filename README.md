@@ -238,11 +238,24 @@ cat ~/gcp-sa-key.json
 ```
 
 4. **Add secret to GitHub repository:**
-   - Go to: `https://github.com/YOUR_USERNAME/telegram-bot-organizze/settings/secrets/actions`
-   - Click **New repository secret**
-   - Name: `GCP_SA_KEY`
-   - Value: Paste the entire JSON content from step 3
-   - Click **Add secret**
+
+   Follow these steps carefully:
+
+   a. **Copy the JSON** from step 3 (entire content from `{` to `}`)
+
+   b. **Navigate to GitHub secrets page:**
+      - Go to: `https://github.com/YOUR_USERNAME/telegram-bot-organizze/settings/secrets/actions`
+
+   c. **Create the secret:**
+      - Click **"New repository secret"**
+      - Name: `GCP_SA_KEY`
+      - Value: Paste the entire JSON content (all 13 lines)
+      - Click **"Add secret"**
+
+   d. **Re-run the workflow** (if it previously failed):
+      - Go to: `https://github.com/YOUR_USERNAME/telegram-bot-organizze/actions`
+      - Click on the failed workflow run
+      - Click **"Re-run all jobs"**
 
 5. **Done!** Now every `git push` to `main` automatically deploys to Cloud Run.
 
