@@ -720,6 +720,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
+
 <p align="center">
   <strong>Version 2.0</strong> - Complete API Integration
 </p>
